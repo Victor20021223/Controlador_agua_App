@@ -1,6 +1,6 @@
 // App.js
-
 import React from "react";
+import IntroStack from "../Controlador_agua_App/navigation/IntroStack";
 import { StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -51,10 +51,7 @@ const AppTabs = () => {
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="SetupScreen">
-        <Stack.Screen name="SetupScreen" component={SetupScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="AppTabs" component={AppTabs} options={{ headerShown: false }} />
-      </Stack.Navigator>
+      <IntroStack />
     </NavigationContainer>
   );
 };
