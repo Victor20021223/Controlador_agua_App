@@ -1,13 +1,14 @@
-// IntroductionPage2.js
+// IntroductionPage1.js
 import React from "react";
 import { View, Text, Button, StyleSheet } from "react-native";
+import SetupScreen from "../screens/SetupScreen";
 
-const IntroductionPage2 = ({ navigation }) => {
+const IntroductionPage1 = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Continue explorando</Text>
-      <Text style={styles.description}>Esta é a segunda página de introdução.</Text>
-      <Button title="Próximo" onPress={() => navigation.navigate("IntroductionPage3")} />
+      <Text style={styles.title}>Bem vindo ao WaterDash</Text>
+      <Text style={styles.description}>Esta é a primeira página de introdução.</Text>
+      <Button title="Próximo" onPress={() => navigation.navigate("IntroductionPage2")} />
       <Button title="Pular" onPress={() => navigation.navigate("SetupScreen")} />
     </View>
   );
@@ -33,4 +34,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default IntroductionPage2;
+export default IntroductionPage1;

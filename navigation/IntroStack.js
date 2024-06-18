@@ -1,7 +1,7 @@
-// IntroStack.js
 import React, { useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native"; // Importe useNavigation
 import IntroductionPage1 from "../screens/IntroductionPage1";
 import IntroductionPage2 from "../screens/IntroductionPage2";
 import IntroductionPage3 from "../screens/IntroductionPage3";
@@ -12,6 +12,8 @@ import AppTabs from "./AppTabs";
 const Stack = createStackNavigator();
 
 const IntroStack = () => {
+  const navigation = useNavigation(); // Utilize useNavigation para obter o objeto de navegação
+
   useEffect(() => {
     checkIntroSeen();
   }, []);

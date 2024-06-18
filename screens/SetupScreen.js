@@ -20,10 +20,9 @@ const SetupScreen = ({ navigation }) => {
     try {
       await AsyncStorage.setItem("userData", JSON.stringify(userData));
       // Navega para a tela principal do aplicativo (AppTabs)
-      navigation.replace("AppTabs");
+      navigation.replace("AppTabs", { userData: userData });
       navigation.navigate('Settings', { userData: userData });
       navigation.navigate('Meta', { userData: userData });
-      navigation.navigate('Notifications', { userData: userData });
     } catch (error) {
       console.error("Erro ao salvar os dados:", error);
     }
