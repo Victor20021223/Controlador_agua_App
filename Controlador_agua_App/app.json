@@ -1,0 +1,39 @@
+{
+    "expo": {
+        "name": "AquaBloom",
+        "slug": "controladoraguareactnative",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/AquaBloom.png",
+        "splash": {
+            "image": "./assets/aquabloomsplash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "updates": {
+            "fallbackToCacheTimeout": 0
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/AquaBloom.png",
+                "backgroundColor": "#FFFFFF"
+            },
+            "package": "com.bfk.WaterReminderApp"
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "extra": {
+            "eas": {
+                "projectId": "011ce1b5-61ee-43d9-ba3c-11b8895e3f66"
+            }
+        },
+        "owner": "victorhug0"
+    }
+}
