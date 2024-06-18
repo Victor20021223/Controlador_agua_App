@@ -29,9 +29,16 @@ const AppTabs = () => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
-      screenOptionsSelections={{
-        activeTintColor: "#1ca3ec",
-        inactiveTintColor: "gray",
+      screenOptionsSelctions={{
+        activeTintColor: "#1ca3ec", // Cor da aba ativa
+        inactiveTintColor: "gray", // Cor da aba inativa
+        style: {
+          backgroundColor: "black", // Cor de fundo da barra de navegação
+        },
+        labelStyle: {
+          fontSize: 12, // Tamanho da fonte das etiquetas das abas
+          fontWeight: "bold", // Peso da fonte das etiquetas das abas
+        },
       }}
     >
       <Tab.Screen name="Meta" component={MetaScreen} />

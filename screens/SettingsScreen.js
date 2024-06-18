@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput, Button } from "react-native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, StyleSheet, Text, Button, Modal, TextInput, Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SettingsScreen = ({ route }) => {
-  // Estado local para armazenar os dados do usuário
   const [userData, setUserData] = useState({
     waterGoal: "",
     weight: "",
@@ -11,94 +10,86 @@ const SettingsScreen = ({ route }) => {
     wakeUpTime: "",
   });
 
-  // Função para carregar os dados do usuário quando a tela é montada ou quando route.params.userData muda
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentSetting, setCurrentSetting] = useState("");
+  const [tempValue, setTempValue] = useState("");
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const savedUserData = await AsyncStorage.getItem("userData");
+        if (savedUserData) {
+          setUserData(JSON.parse(savedUserData));
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
   useEffect(() => {
     if (route.params && route.params.userData) {
       setUserData(route.params.userData);
     }
   }, [route.params]);
 
-  // Funções para atualizar os dados do usuário
-  const handleChangeWaterGoal = (value) => {
-    setUserData({ ...userData, waterGoal: value });
-  };
-
-  const handleChangeWeight = (value) => {
-    setUserData({ ...userData, weight: value });
-  };
-
-  const handleChangeBedTime = (value) => {
-    setUserData({ ...userData, bedTime: value });
-  };
-
-  const handleChangeWakeUpTime = (value) => {
-    setUserData({ ...userData, wakeUpTime: value });
-  };
-
-  // Função para salvar os dados do usuário
   const handleSaveSettings = async () => {
     try {
-      // Converte o objeto userData para uma string JSON
       const jsonUserData = JSON.stringify(userData);
-
-      // Salva os dados no AsyncStorage
       await AsyncStorage.setItem("userData", jsonUserData);
-
-      console.log("Dados do usuário salvos com sucesso:", userData);
-      // Poderia retornar true ou uma mensagem de sucesso, se necessário
-      return true;
+      Alert.alert("Sucesso", "Dados salvos com sucesso!");
     } catch (error) {
-      console.error("Erro ao salvar dados do usuário:", error);
-      // Poderia retornar false ou uma mensagem de erro, se necessário
-      return false;
+      Alert.alert("Erro", "Não foi possível salvar os dados.");
     }
   };
+
+  const handleOpenModal = (setting) => {
+    setCurrentSetting(setting);
+    setTempValue(userData[setting]);
+    setModalVisible(true);
+  };
+
+  const handleSaveModal = () => {
+    setUserData({ ...userData, [currentSetting]: tempValue });
+    setModalVisible(false);
+    handleSaveSettings();
+  };
+
+  const renderButton = (setting, label) => (
+    <View style={styles.buttonContainer} key={setting}>
+      <Button title={label} onPress={() => handleOpenModal(setting)} />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Configurações</Text>
+      {renderButton("waterGoal", "Meta diária de água (ml)")}
+      {renderButton("weight", "Peso (kg)")}
+      {renderButton("bedTime", "Horário de dormir")}
+      {renderButton("wakeUpTime", "Horário de acordar")}
 
-      <View style={styles.inputContainer}>
-        <Text style={styles.text}>Meta diária de água (ml):</Text>
-        <TextInput
-          style={styles.input}
-          value={userData.waterGoal}
-          onChangeText={handleChangeWaterGoal}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.text}>Peso (kg):</Text>
-        <TextInput
-          style={styles.input}
-          value={userData.weight}
-          onChangeText={handleChangeWeight}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.text}>Horário de dormir:</Text>
-        <TextInput
-          style={styles.input}
-          value={userData.bedTime}
-          onChangeText={handleChangeBedTime}
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.text}>Horário de acordar:</Text>
-        <TextInput
-          style={styles.input}
-          value={userData.wakeUpTime}
-          onChangeText={handleChangeWakeUpTime}
-        />
-      </View>
-      
-      <Button title="Salvar" onPress={handleSaveSettings} />
-
-      <Text style={styles.sub}>Dados de Usuário</Text>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Editar {currentSetting}</Text>
+            <TextInput
+              style={styles.input}
+              value={tempValue}
+              onChangeText={setTempValue}
+              keyboardType={currentSetting === "waterGoal" || currentSetting === "weight" ? "numeric" : "default"}
+            />
+            <Button title="Salvar" onPress={handleSaveModal} />
+            <Button title="Cancelar" onPress={() => setModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -106,38 +97,46 @@ const SettingsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "flex-start", // Alinha o conteúdo no topo da tela
+    justifyContent: "flex-start",
     alignItems: "center",
-    paddingTop: 50, // Adiciona padding no topo para afastar o conteúdo do topo da tela
-    backgroundColor: "black", // Azul claro como fundo
+    paddingTop: 50,
+    backgroundColor: "black",
     padding: 20,
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
-    color: "blue", // Azul médio para o título
+    color: "blue",
   },
-  inputContainer: {
+  buttonContainer: {
     marginBottom: 10,
+    width: "100%",
   },
   input: {
     borderWidth: 1,
     borderRadius: 20,
-    borderColor: "#1e90ff", // Azul médio para a borda do input
+    borderColor: "#1e90ff",
     padding: 8,
     width: 200,
     marginBottom: 5,
-    color: "#4169e1", // Azul royal para o texto do input
+    color: "#4169e1",
   },
-  text: {
-    textDecorationColor: "blue", 
-    fontSize: 13,
-    color: "blue",
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
-  sub:{
-    marginTop: 50,
+  modalView: {
+    width: 300,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
     fontSize: 20,
-    color: "blue",
+    marginBottom: 20,
   },
 });
 

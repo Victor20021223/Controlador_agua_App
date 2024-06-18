@@ -44,25 +44,29 @@ const MetaScreen = ({ route, navigation }) => {
       setMetaConcluida(false);
     }
   }, [totalConsumido, metaCalculada]);
-  
 
   const salvarMeta = async () => {
-    // Função para salvar a meta atingida no AsyncStorage
     const goal = {
       date: getCurrentDate(), // Obtém a data atual
       waterGoal: metaCalculada, // Salva a meta calculada
-      weight: userData.weight // Salva o peso do usuário
+      weight: userData.weight, // Salva o peso do usuário
+      totalConsumido: totalConsumido, // Salva o total consumido
     };
-
+  
     try {
       let metasSalvas = await AsyncStorage.getItem('metas');
       metasSalvas = metasSalvas ? JSON.parse(metasSalvas) : [];
+  
+      // Remover metas antigas para a mesma data
+      metasSalvas = metasSalvas.filter(meta => meta.date !== goal.date);
       metasSalvas.push(goal);
+  
       await AsyncStorage.setItem('metas', JSON.stringify(metasSalvas));
     } catch (error) {
       console.error('Erro ao salvar meta:', error);
     }
   };
+  
 
   const getCurrentDate = () => {
     // Função para obter a data atual no formato "YYYY-MM-DD"

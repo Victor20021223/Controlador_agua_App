@@ -1,143 +1,81 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import * as Notifications from "expo-notifications";
 
-const NotificationPage = () => {
-  const [notificationInterval, setNotificationInterval] = useState("30"); // Intervalo inicial de notificação em minutos
-  const [notificationHour, setNotificationHour] = useState("09"); // Hora inicial da notificação
-  const [notificationMinute, setNotificationMinute] = useState("00"); // Minuto inicial da notificação
-  const [notificationSeconds, setNotificationSeconds] = useState("00"); // Segundo inicial da notificação
-  const [scheduledNotifications, setScheduledNotifications] = useState([]); // Array para armazenar as notificações agendadas
+const NotificationPage = ({ route }) => {
+  const [userData, setUserData] = useState({
+    waterGoal: "",
+    weight: "",
+    bedTime: "",
+    wakeUpTime: "",
+  });
+
+  const [scheduledNotifications, setScheduledNotifications] = useState([]);
 
   useEffect(() => {
-    // Solicitar permissões para enviar notificações ao montar o componente
-    const requestNotificationPermissions = async () => {
+    if (route.params && route.params.userData) {
+      setUserData(route.params.userData);
+    }
+  }, [route.params]);
+
+  useEffect(() => {
+    const scheduleNotifications = async () => {
       try {
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== "granted") {
-          if (status === "denied") {
-            throw new Error("Permissão de notificações negada. Você pode habilitá-la nas configurações do dispositivo.");
-          } else {
-            throw new Error("Permissão não concedida para notificações.");
-          }
+        const { wakeUpTime, bedTime } = userData;
+        const wakeUpHour = parseInt(wakeUpTime.split(":")[0]);
+        const bedTimeHour = parseInt(bedTime.split(":")[0]);
+
+        let startHour = wakeUpHour;
+        let endHour = bedTimeHour;
+
+        const notifications = [];
+
+        for (let hour = startHour; hour <= endHour; hour++) {
+          const notificationDate = new Date();
+          notificationDate.setHours(hour, 0, 0, 0);
+
+          const identifier = await Notifications.scheduleNotificationAsync({
+            content: {
+              title: "💧 Water Reminder",
+              body: "Your body needs water!",
+            },
+            trigger: {
+              hour: hour,
+              repeats: true,
+            },
+          });
+
+          const notificationItem = {
+            id: identifier,
+            time: `${hour}:00`,
+          };
+
+          notifications.push(notificationItem);
         }
+
+        setScheduledNotifications(notifications);
       } catch (error) {
-        Alert.alert("Erro", error.message);
+        console.error("Error scheduling notifications:", error);
       }
     };
-  
-    requestNotificationPermissions();
-  }, []);
 
-  const scheduleNotification = async () => {
-    try {
-      const now = new Date();
-      const notificationDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        Number(notificationHour),
-        Number(notificationMinute),
-        Number(notificationSeconds)
-      );
-
-      const intervalInSeconds = parseInt(notificationInterval) * 60;
-
-      const identifier = await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "💧 Water Reminder",
-          body: "Your body needs water!",
-        },
-        trigger: {
-          seconds: intervalInSeconds,
-          repeats: true,
-          hour: notificationDate.getHours(),
-          minute: notificationDate.getMinutes(),
-        },
-      });
-
-      const notificationItem = {
-        id: identifier,
-        time: `${notificationHour}:${notificationMinute}`,
-        interval: parseInt(notificationInterval),
-      };
-
-      setScheduledNotifications([...scheduledNotifications, notificationItem]);
-
-      Alert.alert("Notificação agendada", `A notificação será enviada a cada ${notificationInterval} minutos.`);
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível agendar a notificação.");
+    if (userData.wakeUpTime && userData.bedTime) {
+      scheduleNotifications();
     }
-  };
-
-  const cancelNotification = async (id) => {
-    try {
-      await Notifications.cancelScheduledNotificationAsync(id);
-      const updatedNotifications = scheduledNotifications.filter((item) => item.id !== id);
-      setScheduledNotifications(updatedNotifications);
-      Alert.alert("Notificação cancelada", "A notificação agendada foi cancelada com sucesso.");
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível cancelar a notificação agendada.");
-    }
-  };
+  }, [userData]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Notificações</Text>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Intervalo de Notificação (minutos):</Text>
-        <TextInput
-          style={styles.input}
-          value={notificationInterval}
-          onChangeText={(value) => setNotificationInterval(value)}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Horário da Notificação:</Text>
-        <TextInput
-          style={[styles.input, { width: 50 }]}
-          value={notificationHour}
-          onChangeText={(value) => setNotificationHour(value)}
-          keyboardType="numeric"
-        />
-        <Text style={styles.label}>:</Text>
-        <TextInput
-          style={[styles.input, { width: 50 }]}
-          value={notificationMinute}
-          onChangeText={(value) => setNotificationMinute(value)}
-          keyboardType="numeric"
-        />
-      </View>
-
-      <TouchableOpacity
-        style={[styles.notificationButton, { backgroundColor: "#74ccf4" }]}
-        onPress={scheduleNotification}
-      >
-        <Text style={styles.notificationText}>Cadastrar Notificação</Text>
-      </TouchableOpacity>
-
-      {/* Lista de notificações agendadas */}
-      <View style={styles.notificationListContainer}>
-        <Text style={styles.notificationListTitle}>Notificações Agendadas:</Text>
-        <FlatList
-          data={scheduledNotifications}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.notificationItem}>
-              <Text style={styles.notificationItemText}>{`${item.time} - a cada ${item.interval} minutos`}</Text>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => cancelNotification(item.id)}
-              >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      </View>
+      <Text style={styles.title}>Notificações Agendadas:</Text>
+      <FlatList
+        data={scheduledNotifications}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.notificationItem}>
+            <Text style={styles.notificationItemText}>{item.time}</Text>
+          </View>
+        )}
+      />
     </View>
   );
 };
@@ -148,53 +86,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "black", // Fundo preto
+    backgroundColor: "black",
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
-    color: "#1e90ff", // Azul médio
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 16,
-    color: "#1e90ff", // Azul médio
-    marginRight: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#1e90ff", // Azul médio
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    color: "#1e90ff", // Azul médio
-  },
-  notificationButton: {
-    height: 50,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 10,
-    marginVertical: 10,
-    width: "80%",
-  },
-  notificationText: {
-    color: "white", // Texto branco
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  notificationListContainer: {
-    marginTop: 20,
-    width: "100%",
-  },
-  notificationListTitle: {
-    fontSize: 18,
-    color: "#1e90ff", // Azul médio
-    marginBottom: 10,
+    color: "#1e90ff",
   },
   notificationItem: {
     flexDirection: "row",
@@ -204,18 +101,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#333",
     marginBottom: 10,
     borderRadius: 5,
+    width: "80%",
   },
   notificationItemText: {
-    color: "white", // Texto branco
-    fontSize: 16,
-  },
-  cancelButton: {
-    backgroundColor: "red",
-    padding: 8,
-    borderRadius: 5,
-  },
-  cancelButtonText: {
-    color: "white", // Texto branco
+    color: "white",
     fontSize: 16,
   },
 });
