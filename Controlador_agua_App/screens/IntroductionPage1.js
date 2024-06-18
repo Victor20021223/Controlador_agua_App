@@ -5,7 +5,7 @@ import { View, Text, Button, StyleSheet } from "react-native";
 const IntroductionPage1 = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bem vindo ao App</Text>
+      <Text style={styles.title}>Bem vindo ao WaterDash</Text>
       <Text style={styles.description}>Esta é a primeira página de introdução.</Text>
       <Button title="Próximo" onPress={() => navigation.navigate("IntroductionPage2")} />
     </View>
