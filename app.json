@@ -24,14 +24,14 @@
                 "foregroundImage": "./assets/AquaBloom.png",
                 "backgroundColor": "#FFFFFF"
             },
-            "package": "com.bfk.WaterReminderApp"
+            "package": "com.vhm.controladoraguareactnative"
         },
         "web": {
             "favicon": "./assets/favicon.png"
         },
         "extra": {
             "eas": {
-                "projectId": "011ce1b5-61ee-43d9-ba3c-11b8895e3f66"
+                "projectId": "4df79e68-1422-42d8-b40e-31091a281702"
             }
         },
         "owner": "victorhug0"
