@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import { View, Text, StyleSheet, Button, Alert, Image } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import LottieView from 'lottie-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Importar AsyncStorage
@@ -101,6 +101,11 @@ const MetaScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
+      <Image
+          source={require("../assets/aquabloomsplash150.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       <Text style={styles.title}>Bem-vindo!</Text>
       <Text style={styles.metaText}>Meta Atual para bater: {metaCalculada} ml</Text>
       <Text style={styles.metaText}>Água consumida hoje: {totalConsumido} ml</Text>

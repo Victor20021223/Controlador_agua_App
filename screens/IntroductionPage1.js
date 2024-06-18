@@ -6,7 +6,7 @@ const IntroductionPage1 = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.content}>
       <Image
-          source={require("../assets/aquabloomsplash.png")}
+          source={require("../assets/aquabloomsplash150.png")}
           style={styles.logo}
           resizeMode="contain"
         />
