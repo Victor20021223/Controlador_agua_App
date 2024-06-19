@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, Button, Alert, Image } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import { View, Text, StyleSheet, Button, Alert } from "react-native";
+import { FontAwesome } from "@expo/vector-icons"; // Importa FontAwesome
 import LottieView from 'lottie-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Importar AsyncStorage
-import WaterDropProgress from '../components/WaterDropProgress'; // Importar o componente
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import WaterDropProgress from '../components/WaterDropProgress';
 
-const MetaScreen = ({ route, navigation }) => {
+const MetaScreen = ({ route }) => {
   const [userData, setUserData] = useState({
     waterGoal: "",
     weight: "",
@@ -19,14 +19,29 @@ const MetaScreen = ({ route, navigation }) => {
   const [metaConcluida, setMetaConcluida] = useState(false);
 
   useEffect(() => {
-    // Carregar os dados do usuário ao montar o componente ou ao mudar route.params.userData
+    const fetchUserData = async () => {
+      try {
+        const savedUserData = await AsyncStorage.getItem("userData");
+        if (savedUserData) {
+          setUserData(JSON.parse(savedUserData));
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  // Atualiza userData quando route.params.userData muda
+  useEffect(() => {
     if (route.params && route.params.userData) {
       setUserData(route.params.userData);
     }
   }, [route.params]);
 
+  // Calcula a meta baseado no peso do usuário
   useEffect(() => {
-    // Calcular a meta inicial ao carregar os dados do usuário
+    console.log("Calculando meta com peso:", userData.weight);
     if (userData.weight) {
       const pesoNumber = Number(userData.weight);
       const metaCalculadaTemp = pesoNumber * 35;
@@ -34,8 +49,9 @@ const MetaScreen = ({ route, navigation }) => {
     }
   }, [userData]);
 
+  // Verifica se a meta foi atingida
   useEffect(() => {
-    // Verificar se a meta foi atingida
+    console.log("Verificando se a meta foi atingida:", totalConsumido, metaCalculada);
     if (totalConsumido > metaCalculada) {
       setMetaConcluida(true);
       salvarMeta(); // Chama a função para salvar a meta quando é atingida
@@ -45,31 +61,32 @@ const MetaScreen = ({ route, navigation }) => {
     }
   }, [totalConsumido, metaCalculada]);
 
+  // Salva a meta atingida no AsyncStorage
   const salvarMeta = async () => {
+    // Função para salvar a meta atingida no AsyncStorage
     const goal = {
       date: getCurrentDate(), // Obtém a data atual
       waterGoal: metaCalculada, // Salva a meta calculada
       weight: userData.weight, // Salva o peso do usuário
       totalConsumido: totalConsumido, // Salva o total consumido
     };
-  
+
     try {
       let metasSalvas = await AsyncStorage.getItem('metas');
       metasSalvas = metasSalvas ? JSON.parse(metasSalvas) : [];
-  
+
       // Remover metas antigas para a mesma data
       metasSalvas = metasSalvas.filter(meta => meta.date !== goal.date);
       metasSalvas.push(goal);
-  
+
       await AsyncStorage.setItem('metas', JSON.stringify(metasSalvas));
     } catch (error) {
       console.error('Erro ao salvar meta:', error);
     }
   };
-  
 
+  // Obtém a data atual no formato "YYYY-MM-DD"
   const getCurrentDate = () => {
-    // Função para obter a data atual no formato "YYYY-MM-DD"
     const today = new Date();
     const year = today.getFullYear();
     let month = today.getMonth() + 1;
@@ -85,27 +102,39 @@ const MetaScreen = ({ route, navigation }) => {
     return `${year}-${month}-${day}`;
   };
 
+  // Atualiza o progresso com base no total consumido
   const atualizarProgresso = (total) => {
-    // Atualizar o estado de progresso com base no total consumido
     const porcentagem = (total / metaCalculada) * 100;
     setProgresso(porcentagem > 100 ? 100 : porcentagem);
   };
 
+  // Adiciona água ao total consumido e atualiza o progresso
   const adicionarAgua = () => {
-    // Função para adicionar água ao total consumido
-    const aguaAdicionada = 200;
-    const novoTotal = totalConsumido + aguaAdicionada;
-    setTotalConsumido(novoTotal);
-    atualizarProgresso(novoTotal);
+    // Opções de tamanhos de copos (pode ser estendido para permitir que o usuário cadastre seus próprios copos)
+    const copos = [
+      { ml: 200, label: "Copo(200 ml)", icon: "glass" },
+      { ml: 300, label: "Copo(300 ml)", icon: "glass" },
+      { ml: 500, label: "Copo(500 ml)", icon: "glass" },
+      // Exemplo de copo cadastrado pelo usuário
+      { ml: 250, label: "Meu Copo Personalizado (250 ml)", icon: "user" },
+    ];
+
+    Alert.alert(
+      "Selecione o Tamanho do Copo",
+      "Escolha a quantidade de água que deseja adicionar:",
+      copos.map((copo) => ({
+        text: copo.label,
+        onPress: () => {
+          const novoTotal = totalConsumido + copo.ml;
+          setTotalConsumido(novoTotal);
+          atualizarProgresso(novoTotal);
+        },
+      })),
+    );
   };
 
   return (
     <View style={styles.container}>
-      <Image
-          source={require("../assets/aquabloomsplash150.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
       <Text style={styles.title}>Bem-vindo!</Text>
       <Text style={styles.metaText}>Meta Atual para bater: {metaCalculada} ml</Text>
       <Text style={styles.metaText}>Água consumida hoje: {totalConsumido} ml</Text>
@@ -123,7 +152,7 @@ const MetaScreen = ({ route, navigation }) => {
       ) : (
         <Button title="Adicionar Água" onPress={adicionarAgua} />
       )}
-      {/* Adicionar a barra de progresso em forma de gota de água */}
+
       <WaterDropProgress progress={progresso} style={styles.barraProgress} />
     </View>
   );
@@ -154,6 +183,9 @@ const styles = StyleSheet.create({
   lottie: {
     width: 300,
     height: 30,
+  },
+  barraProgress: {
+    marginTop: 20,
   },
 });
 

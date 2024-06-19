@@ -14,7 +14,13 @@ const SetupScreen = ({ navigation }) => {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
     }
-
+  
+    // Verifica se o horário de dormir e acordar está no formato hh:mm
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(bedTime) || !timeRegex.test(wakeUpTime)) {
+      Alert.alert("Erro", "Por favor, insira horários válidos no formato hh:mm.");
+      return;
+    }
     // Salva os dados no AsyncStorage
     const userData = {
       waterGoal: waterGoal,
@@ -22,15 +28,17 @@ const SetupScreen = ({ navigation }) => {
       bedTime: bedTime,
       wakeUpTime: wakeUpTime,
     };
-
+  
     try {
       await AsyncStorage.setItem("userData", JSON.stringify(userData));
-      // Navega para a tela principal do aplicativo (AppTabs)
+      // Navega para a tela principal do aplicativo (AppTabs) e passa os dados do usuário
       navigation.replace("AppTabs", { userData: userData });
     } catch (error) {
       console.error("Erro ao salvar os dados:", error);
+      Alert.alert("Erro", "Ocorreu um erro ao tentar salvar os dados.");
     }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -39,7 +47,7 @@ const SetupScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Meta de Água (ml)"
-        placeholderTextColor={"blue"}
+        placeholderTextColor="blue"
         value={waterGoal}
         onChangeText={setWaterGoal}
         keyboardType="numeric"
@@ -47,7 +55,7 @@ const SetupScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Peso (kg)"
-        placeholderTextColor={"blue"}
+        placeholderTextColor="blue"
         value={weight}
         onChangeText={setWeight}
         keyboardType="numeric"
@@ -55,14 +63,14 @@ const SetupScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Horário de Dormir (hh:mm)"
-        placeholderTextColor={"blue"}
+        placeholderTextColor="blue"
         value={bedTime}
         onChangeText={setBedTime}
       />
       <TextInput
         style={styles.input}
         placeholder="Horário de Acordar (hh:mm)"
-        placeholderTextColor={"blue"}
+        placeholderTextColor="blue"
         value={wakeUpTime}
         onChangeText={setWakeUpTime}
       />
@@ -79,12 +87,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "black", // Fundo preto
+    backgroundColor: "black",
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
-    color: "#4169e1", // Azul-royal para o título
+    color: "#4169e1",
   },
   input: {
     width: "100%",
@@ -94,17 +102,17 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginBottom: 20,
     paddingLeft: 10,
-    color: "blue", // Azul para o texto de entrada
-    textAlign: "center", // Centraliza o texto horizontalmente
+    color: "blue",
+    textAlign: "center",
   },
   sub: {
     marginBottom: 20,
     fontSize: 15,
-    color: "blue", // Azul para o texto de subtitulo
+    color: "blue",
     textAlign: "center",
   },
   buttonContainer: {
-    width: "100%", // Ocupa toda a largura disponível
+    width: "100%",
   },
 });
 

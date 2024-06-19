@@ -1,68 +1,59 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import * as Notifications from "expo-notifications";
+import { View, Text, StyleSheet, FlatList, Switch, Alert } from "react-native";
 
-const NotificationPage = ({ route }) => {
-  const [userData, setUserData] = useState({
-    waterGoal: "",
-    weight: "",
-    bedTime: "",
-    wakeUpTime: "",
-  });
-
+const NotificationPage = () => {
   const [scheduledNotifications, setScheduledNotifications] = useState([]);
+  const [notificationSwitches, setNotificationSwitches] = useState({});
 
   useEffect(() => {
-    if (route.params && route.params.userData) {
-      setUserData(route.params.userData);
-    }
-  }, [route.params]);
+    const scheduleNotifications = () => {
+      const notifications = [];
+      const switches = {};
 
-  useEffect(() => {
-    const scheduleNotifications = async () => {
-      try {
-        const { wakeUpTime, bedTime } = userData;
-        const wakeUpHour = parseInt(wakeUpTime.split(":")[0]);
-        const bedTimeHour = parseInt(bedTime.split(":")[0]);
+      // Horários fixos para as notificações
+      const fixedHours = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+      
+      fixedHours.forEach((hour) => {
+        const identifier = `notification_${hour}`;
 
-        let startHour = wakeUpHour;
-        let endHour = bedTimeHour;
+        const notificationItem = {
+          id: identifier,
+          time: `${hour}:00`,
+          active: true,
+        };
 
-        const notifications = [];
+        notifications.push(notificationItem);
+        switches[hour] = true;
+      });
 
-        for (let hour = startHour; hour <= endHour; hour++) {
-          const notificationDate = new Date();
-          notificationDate.setHours(hour, 0, 0, 0);
-
-          const identifier = await Notifications.scheduleNotificationAsync({
-            content: {
-              title: "💧 Water Reminder",
-              body: "Your body needs water!",
-            },
-            trigger: {
-              hour: hour,
-              repeats: true,
-            },
-          });
-
-          const notificationItem = {
-            id: identifier,
-            time: `${hour}:00`,
-          };
-
-          notifications.push(notificationItem);
-        }
-
-        setScheduledNotifications(notifications);
-      } catch (error) {
-        console.error("Error scheduling notifications:", error);
-      }
+      setScheduledNotifications(notifications);
+      setNotificationSwitches(switches);
     };
 
-    if (userData.wakeUpTime && userData.bedTime) {
-      scheduleNotifications();
-    }
-  }, [userData]);
+    scheduleNotifications();
+  }, []); // Dependência vazia para garantir que este efeito só seja executado uma vez
+
+  const toggleSwitch = (hour) => {
+    const updatedSwitches = {
+      ...notificationSwitches,
+      [hour]: !notificationSwitches[hour],
+    };
+    setNotificationSwitches(updatedSwitches);
+  };
+
+  const confirmCancelNotification = async (hour) => {
+    return new Promise((resolve) => {
+      Alert.alert(
+        "Confirmar Cancelamento",
+        `Deseja realmente cancelar a notificação para ${hour}:00?`,
+        [
+          { text: "Cancelar", onPress: () => resolve(false), style: "cancel" },
+          { text: "Confirmar", onPress: () => resolve(true) },
+        ],
+        { cancelable: false }
+      );
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -73,6 +64,13 @@ const NotificationPage = ({ route }) => {
         renderItem={({ item }) => (
           <View style={styles.notificationItem}>
             <Text style={styles.notificationItemText}>{item.time}</Text>
+            <Switch
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={notificationSwitches[item.id] ? "#f5dd4b" : "#f4f3f4"}
+              ios_backgroundColor="#3e3e3e"
+              onValueChange={() => toggleSwitch(item.id)}
+              value={notificationSwitches[item.id]}
+            />
           </View>
         )}
       />
@@ -100,12 +98,14 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#333",
     marginBottom: 10,
-    borderRadius: 5,
+    borderRadius: 50,
     width: "80%",
+    marginLeft: 30,
   },
   notificationItemText: {
     color: "white",
     fontSize: 16,
+    alignItems: "center",
   },
 });
 
