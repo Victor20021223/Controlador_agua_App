@@ -114,7 +114,7 @@ const MetaScreen = ({ route }) => {
     const copos = [
       { ml: 200, label: "Copo(200 ml)", icon: "glass" },
       { ml: 300, label: "Copo(300 ml)", icon: "glass" },
-      { ml: 500, label: "Copo(500 ml)", icon: "glass" },
+      { ml: 500, label: "Copo(500 ml)", icon: "glass-water" },
       // Exemplo de copo cadastrado pelo usuário
       { ml: 250, label: "Meu Copo Personalizado (250 ml)", icon: "user" },
     ];
